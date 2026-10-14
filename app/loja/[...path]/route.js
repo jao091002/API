@@ -19,6 +19,14 @@ function serverError(message, error) {
 export async function GET(request, context) {
   const route = await routeName(context);
   try {
+    if (route === 'health') {
+      const { rows } = await db.query(`
+        SELECT to_regclass('public.produtos') IS NOT NULL AS produtos,
+               to_regclass('public.movimentacoes') IS NOT NULL AS movimentacoes
+      `);
+      const ready = rows[0].produtos && rows[0].movimentacoes;
+      return Response.json({ status: ready ? 'ok' : 'schema_missing' }, { status: ready ? 200 : 503 });
+    }
     if (route === 'listar') {
       const { rows } = await db.query('SELECT * FROM produtos ORDER BY id');
       return Response.json(rows);

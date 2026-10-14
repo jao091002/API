@@ -2,12 +2,11 @@
   "name": "api",
   "version": "1.0.0",
   "private": true,
-  "main": "server.js",
   "scripts": {
-    "dev": "node custom-server.js --dev",
+    "dev": "next dev",
     "build": "next build",
-    "start": "node custom-server.js",
-    "api": "node server.js",
+    "start": "next start",
+    "db:seed": "node scripts/seed-demo.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -15,11 +14,8 @@
   "description": "",
   "dependencies": {
     "dotenv": "^18.0.7",
-    "express": "^5.3.0",
-    "http": "^0.0.1-security",
-    "mysql2": "^3.24.6",
     "next": "^15.5.6",
-    "nodemon": "^3.1.14",
+    "pg": "^8.23.1",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
   }

@@ -13,6 +13,9 @@ function serverError(message, error) {
   if (error.code === 'DATABASE_URL_MISSING') {
     return Response.json({ error: 'Configure DATABASE_URL nas variáveis de ambiente da Vercel.' }, { status: 503 });
   }
+  if (error.code === '42P01') {
+    return Response.json({ error: 'As tabelas do banco ainda não existem. Execute npm run db:seed uma vez.' }, { status: 503 });
+  }
   return Response.json({ error: message }, { status: 500 });
 }
 

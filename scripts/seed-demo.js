@@ -32,6 +32,7 @@ async function seed() {
     const schema = fs.readFileSync(path.join(__dirname, '..', 'database', 'schema.sql'), 'utf8');
     await client.query(schema);
     await client.query('BEGIN');
+    await client.query('SELECT pg_advisory_xact_lock(730241905)');
 
     for (const [name, quantity, price, category] of products) {
       const result = await client.query(

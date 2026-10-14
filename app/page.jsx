@@ -28,10 +28,13 @@ export default function Home() {
   const [message, setMessage] = useState('Selecione um relatório para consultar.');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [loadingProducts, setLoadingProducts] = useState(true);
 
   async function loadProducts() {
+    setLoadingProducts(true);
     try { setProducts(await api('listar')); setError(''); }
     catch (e) { setError(e.message); }
+    finally { setLoadingProducts(false); }
   }
   useEffect(() => { loadProducts(); }, []);
 
@@ -57,7 +60,7 @@ export default function Home() {
     <header className="topbar"><a className="brand" href="#inicio"><span className="brand-mark">E</span> ESTOQUE <span className="brand-light">/ PAINEL</span></a><span className="connection"><i /> Gestão do seu negócio</span></header>
     <main>
       <section className="welcome" id="inicio"><div><span className="eyebrow">GESTÃO SIMPLES, DIA A DIA MAIS LEVE</span><h1>Seu estoque,<br /><span>em ordem.</span></h1><p>Cadastre produtos, acompanhe movimentações e consulte relatórios em um só lugar.</p></div><div className="welcome-art" aria-hidden="true"><div className="art-box box-one"/><div className="art-box box-two"/><div className="art-box box-three"/><span>INVENTÁRIO<br/>ORGANIZADO</span></div></section>
-      <section className="card"><div className="section-title"><div><span className="eyebrow">VISÃO GERAL</span><h2>Seus produtos</h2></div><button className="button-secondary" onClick={loadProducts}>↻ Atualizar lista</button></div>{error && <p className="error">{error}</p>}{products.length ? <ResultTable data={products}/> : <p className="muted">{error ? 'Verifique se o servidor e o banco estão ativos.' : 'Nenhum produto cadastrado.'}</p>}</section>
+      <section className="card"><div className="section-title"><div><span className="eyebrow">VISÃO GERAL</span><h2>Seus produtos</h2></div><button className="button-secondary" onClick={loadProducts} disabled={loadingProducts}>↻ Atualizar lista</button></div>{error && <p className="error">{error}</p>}{loadingProducts ? <div className="skeleton-list" aria-label="Carregando produtos"><i/><i/><i/></div> : products.length ? <ResultTable data={products}/> : <p className="muted">{error ? 'Verifique se o servidor e o banco estão ativos.' : 'Nenhum produto cadastrado.'}</p>}</section>
       <div className="grid">
         <section className="card form-card"><span className="card-icon">＋</span><span className="eyebrow">NOVO NO ESTOQUE</span><h2>Cadastrar produto</h2><p className="card-description">Adicione um item ao seu inventário.</p><form onSubmit={(e) => send(e, 'cadastro', 'Produto cadastrado.')}><label>Nome<input name="nome" required /></label><label>Quantidade inicial<input name="quantidade" type="number" min="0" step="any" required /></label><label>Valor unitário (R$)<input name="valor" type="number" min="0" step="0.01" required /></label><label>Categoria<input name="categoria" required /></label><button disabled={busy}>Cadastrar produto</button></form></section>
         <section className="card form-card"><span className="card-icon icon-orange">↗</span><span className="eyebrow">ENTRADAS E SAÍDAS</span><h2>Movimentação</h2><p className="card-description">Mantenha o saldo atualizado.</p><form onSubmit={(e) => send(e, 'registro', 'Movimentação registrada.')}><label>Produto<select name="id_produto" required defaultValue=""><option value="" disabled>Selecione um produto</option>{products.map(p => <option key={p.id} value={p.id}>{p.nome} (ID {p.id})</option>)}</select></label><label>Tipo<select name="tipo"><option value="entrada">Entrada</option><option value="saida">Saída</option></select></label><label>Quantidade<input name="quantidade" type="number" min="0.01" step="any" required /></label><label>Data e hora<input name="tempo" type="datetime-local" required /></label><button disabled={busy}>Registrar movimentação</button></form></section>

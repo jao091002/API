@@ -8,8 +8,11 @@ async function routeName(context) {
   return path.join('/');
 }
 
-function serverError(res, message, error) {
+function serverError(message, error) {
   console.error(`${message}:`, error.message);
+  if (error.code === 'DATABASE_URL_MISSING') {
+    return Response.json({ error: 'Configure DATABASE_URL nas variáveis de ambiente da Vercel.' }, { status: 503 });
+  }
   return Response.json({ error: message }, { status: 500 });
 }
 

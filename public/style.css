@@ -1,0 +1,165 @@
+* {
+    box-sizing: border-box
+}
+
+body {
+    margin: 0;
+    background: #f3f5f7;
+    color: #202b36;
+    font: 16px/1.5 Arial, sans-serif
+}
+
+header {
+    background: #176b58;
+    color: white;
+    padding: 25px max(20px, calc((100% - 1050px)/2))
+}
+
+header h1 {
+    margin: 0
+}
+
+header p {
+    margin: 4px 0 0;
+    color: #e0f3ed
+}
+
+main {
+    max-width: 1050px;
+    margin: 24px auto;
+    padding: 0 16px
+}
+
+.card {
+    background: white;
+    border: 1px solid #e1e6e9;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 18px;
+    box-shadow: 0 2px 8px #1e293b0a
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 16px
+}
+
+.section-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px
+}
+
+h2 {
+    font-size: 20px;
+    margin: 0 0 14px
+}
+
+h3 {
+    font-size: 16px;
+    margin: 0 0 12px
+}
+
+.section-title h2 {
+    margin: 0
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px
+}
+
+label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 14px;
+    font-weight: 600
+}
+
+input,
+select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccd4da;
+    border-radius: 6px;
+    font: inherit;
+    background: white
+}
+
+button {
+    background: #176b58;
+    color: white;
+    border: 0;
+    border-radius: 6px;
+    padding: 10px 14px;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer
+}
+
+button:hover {
+    background: #105340
+}
+
+.table-wrap {
+    overflow-x: auto;
+    margin-top: 14px
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left
+}
+
+th,
+td {
+    padding: 10px;
+    border-bottom: 1px solid #e6eaed
+}
+
+th {
+    font-size: 14px;
+    color: #52606b
+}
+
+.result {
+    margin-top: 18px;
+    overflow: auto;
+    background: #f6f8f9;
+    border-radius: 6px;
+    padding: 14px;
+    min-height: 48px;
+    white-space: pre-wrap
+}
+
+.result table {
+    white-space: normal
+}
+
+.muted {
+    color: #687580
+}
+
+@media(max-width:600px) {
+    header {
+        padding: 20px
+    }
+
+    main {
+        margin-top: 14px
+    }
+
+    .card {
+        padding: 16px
+    }
+
+    .section-title {
+        align-items: flex-start;
+        flex-direction: column
+    }
+}

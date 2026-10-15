@@ -67,14 +67,44 @@ export async function POST(request, context) {
 
     if (route === 'registro') {
       const { tempo, tipo, quantidade, id_produto } = body;
-      if (!tempo || !['entrada', 'saida'].includes(tipo) || quantidade == null || !id_produto) {
+      if (!tempo || Number.isNaN(Date.parse(tempo)) || !['entrada', 'saida'].includes(tipo) || !Number.isFinite(Number(quantidade)) || Number(quantidade) <= 0 || !/^\d+$/.test(String(id_produto || ''))) {
         return Response.json({ error: 'Informe tempo, tipo (entrada/saida), quantidade e id_produto' }, { status: 400 });
       }
-      const { rows } = await db.query(
-        'INSERT INTO movimentacoes (tempo, tipo, quantidade, id_produto) VALUES ($1, $2, $3, $4) RETURNING id',
-        [tempo, tipo, quantidade, id_produto]
-      );
-      return Response.json({ message: 'Movimentação registrada', id: rows[0].id }, { status: 201 });
+      const client = await db.connect();
+      let rows;
+      try {
+        await client.query('BEGIN');
+        const product = await client.query('SELECT id, quantidade FROM produtos WHERE id = $1 FOR UPDATE', [id_produto]);
+        if (!product.rows.length) {
+          await client.query('ROLLBACK');
+          return Response.json({ error: 'Produto nÃ£o encontrado' }, { status: 404 });
+        }
+        const currentStock = Number(product.rows[0].quantidade);
+        const movementQuantity = Number(quantidade);
+        if (tipo === 'saida' && movementQuantity > currentStock) {
+          await client.query('ROLLBACK');
+          return Response.json({ error: `Estoque insuficiente. Saldo atual: ${currentStock}.` }, { status: 409 });
+        }
+        const inserted = await client.query(
+          'INSERT INTO movimentacoes (tempo, tipo, quantidade, id_produto) VALUES ($1, $2, $3, $4) RETURNING id',
+          [tempo, tipo, movementQuantity, id_produto]
+        );
+        const updated = await client.query(
+          `UPDATE produtos
+           SET quantidade = quantidade + CASE WHEN $1 = 'entrada' THEN $2::numeric ELSE -$2::numeric END
+           WHERE id = $3 RETURNING quantidade`,
+          [tipo, movementQuantity, id_produto]
+        );
+        await client.query('COMMIT');
+        rows = inserted.rows;
+        rows[0].quantidade_atual = updated.rows[0].quantidade;
+      } catch (error) {
+        try { await client.query('ROLLBACK'); } catch {}
+        throw error;
+      } finally {
+        client.release();
+      }
+      return Response.json({ message: 'Movimentação registrada', id: rows[0].id, quantidade_atual: rows[0].quantidade_atual }, { status: 201 });
     }
 
     if (route === 'porcentagem') {
@@ -87,7 +117,7 @@ export async function POST(request, context) {
         SELECT id, nome, quantidade, categoria,
                ROUND((quantidade / $1::numeric) * 100, 2) AS percentual_atingido
         FROM produtos
-        WHERE quantidade <= $2 OR quantidade >= $3
+        WHERE quantidade < $2 OR quantidade >= $3
         ORDER BY quantidade, nome
       `, [limiteMaximo, limiteMinimo, limiteMaximo]);
       return Response.json({
@@ -138,5 +168,48 @@ export async function POST(request, context) {
     return Response.json({ error: 'Rota não encontrada' }, { status: 404 });
   } catch (error) {
     return serverError('Erro ao processar a solicitação', error);
+  }
+}
+
+export async function PATCH(request, context) {
+  const route = await routeName(context);
+  const match = route.match(/^produtos\/(\d+)$/);
+  if (!match) return Response.json({ error: 'Rota não encontrada' }, { status: 404 });
+
+  let body;
+  try { body = await request.json(); }
+  catch { return Response.json({ error: 'Corpo da solicitação deve ser JSON válido' }, { status: 400 }); }
+
+  const { nome, quantidade, valor, categoria } = body;
+  if (!nome?.trim() || !categoria?.trim() || !Number.isFinite(Number(quantidade)) || Number(quantidade) < 0 || !Number.isFinite(Number(valor)) || Number(valor) < 0) {
+    return Response.json({ error: 'Informe nome, categoria e valores numéricos válidos para quantidade e preço' }, { status: 400 });
+  }
+
+  try {
+    const { rows } = await db.query(
+      'UPDATE produtos SET nome = $1, quantidade = $2, valor = $3, categoria = $4 WHERE id = $5 RETURNING id',
+      [nome.trim(), quantidade, valor, categoria.trim(), match[1]]
+    );
+    if (!rows.length) return Response.json({ error: 'Produto não encontrado' }, { status: 404 });
+    return Response.json({ message: 'Produto atualizado com sucesso', id: rows[0].id });
+  } catch (error) {
+    return serverError('Erro ao atualizar produto', error);
+  }
+}
+
+export async function DELETE(_request, context) {
+  const route = await routeName(context);
+  const match = route.match(/^produtos\/(\d+)$/);
+  if (!match) return Response.json({ error: 'Rota não encontrada' }, { status: 404 });
+
+  try {
+    const { rows } = await db.query('DELETE FROM produtos WHERE id = $1 RETURNING id', [match[1]]);
+    if (!rows.length) return Response.json({ error: 'Produto não encontrado' }, { status: 404 });
+    return Response.json({ message: 'Produto excluído com sucesso', id: rows[0].id });
+  } catch (error) {
+    if (error.code === '23503') {
+      return Response.json({ error: 'Este produto tem movimentações registradas e não pode ser excluído.' }, { status: 409 });
+    }
+    return serverError('Erro ao excluir produto', error);
   }
 }

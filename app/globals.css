@@ -26,3 +26,19 @@ table tbody tr:hover{background:#f6f9f5}
 @keyframes float-box{0%,100%{translate:0 0}50%{translate:0 -7px}}
 @keyframes shimmer{to{background-position:-200% 0}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+.search-label{max-width:380px;margin:20px 0 6px;font-size:11px}
+.count-badge{display:inline-grid;place-items:center;min-width:25px;height:25px;padding:0 7px;border-radius:99px;background:#edf4e9;color:var(--green);font:600 12px 'DM Sans',Arial,sans-serif;vertical-align:3px}
+.actions{display:flex;align-items:center;gap:7px}
+.actions button{padding:7px 9px!important}
+.button-danger{background:#fff2ef;color:#a4382b;border:1px solid #f3ded8}
+.button-danger:hover{background:#fae5e1;color:#8f291f}
+.connection-schema_missing i{background:#e2ad59}.connection-offline i{background:#e16d61}.connection-checking i{background:#c6d0c7;animation:pulse 1s ease-in-out infinite}
+.modal-backdrop{position:fixed;inset:0;z-index:10;display:grid;place-items:center;padding:18px;background:#102a2470;backdrop-filter:blur(5px);animation:rise-in .2s ease both}
+.edit-modal{position:relative;width:min(100%,480px);padding:28px;border:1px solid #e6ece5;border-radius:16px;background:#fff;box-shadow:0 24px 80px #102a2433;animation:rise-in .25s cubic-bezier(.2,.7,.2,1) both}
+.edit-modal h2{margin:0 0 18px;color:var(--dark);font:700 22px Manrope,Arial,sans-serif}
+.modal-close{position:absolute;right:20px;top:20px}
+.modal-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:8px}
+.modal-actions .button-secondary{padding:10px 14px!important}
+@keyframes pulse{50%{opacity:.45}}
+@media(max-width:560px){.actions{min-width:145px}.search-label{max-width:none}.edit-modal{padding:24px 18px}}
